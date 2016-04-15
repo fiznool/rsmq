@@ -169,30 +169,43 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       options.delay = (ref1 = options.delay) != null ? ref1 : 0;
       options.maxsize = (ref2 = options.maxsize) != null ? ref2 : 65536;
       if (this._validate(options, ["qname", "vt", "delay", "maxsize"], cb) === false) {
+        console.log('validate false');
         return;
       }
       this.redis.time((function(_this) {
         return function(err, resp) {
+          console.log('time cb');
           var mc;
           if (err) {
+            console.log('time err');
             _this._handleError(cb, err);
             return;
           }
+          console.log('time ok');
           mc = [["hsetnx", "" + _this.redisns + options.qname + ":Q", "vt", options.vt], ["hsetnx", "" + _this.redisns + options.qname + ":Q", "delay", options.delay], ["hsetnx", "" + _this.redisns + options.qname + ":Q", "maxsize", options.maxsize], ["hsetnx", "" + _this.redisns + options.qname + ":Q", "created", resp[0]], ["hsetnx", "" + _this.redisns + options.qname + ":Q", "modified", resp[0]]];
+          console.log('multi exec');
           _this.redis.multi(mc).exec(function(err, resp) {
+            console.log('multi cb');
             if (err) {
+              console.log('multi err');
               _this._handleError(cb, err);
               return;
             }
             if (resp[0] === 0) {
+              console.log('multi queueExists');
               _this._handleError(cb, "queueExists");
               return;
             }
+              console.log('multi ok');
+              console.log('sadd exec');
             _this.redis.sadd(_this.redisns + "QUEUES", options.qname, function(err, resp) {
+              console.log('sadd cb');
               if (err) {
+                console.log('sadd err');
                 _this._handleError(cb, err);
                 return;
               }
+                console.log('sadd ok');
               cb(null, 1);
             });
           });
